@@ -19,7 +19,16 @@ h1{margin:4px 0 8px;font-size:40px;color:#ff5c8a;text-shadow:3px 3px 0 #fff}
 .mascot{width:200px;height:320px;pointer-events:none}
 .mascot svg{width:100%;height:100%;overflow:visible}
 .floater{position:fixed;right:6px;bottom:4px;width:96px;height:154px;z-index:7;pointer-events:none}
-.mascot[data-outfit="modern"] .outfit-trad,.mascot[data-outfit="trad"] .outfit-mod{display:none}
+.mascot[data-outfit="modern"] .outfit-trad,.mascot[data-outfit="trad"] .outfit-mod,.mini-mascot[data-outfit="modern"] .outfit-trad,.mini-mascot[data-outfit="trad"] .outfit-mod{display:none}
+.mascot img.avatar-img{width:100%;height:100%;object-fit:contain;display:block}
+.mascot[data-avatar="svg"] img.avatar-img{display:none}
+.mascot[data-avatar]:not([data-avatar="svg"]) svg{display:none}
+.avgrid{grid-template-columns:repeat(6,150px);height:calc(100% - 64px)}
+.avbtn{width:150px;height:188px;border:none;border-radius:22px;background:#fff;box-shadow:0 6px 0 rgba(0,0,0,.1);padding:4px;display:flex;align-items:center;justify-content:center}
+.avbtn.on{outline:6px solid #ff5c8a}
+.avbtn img{width:100%;height:170px;object-fit:contain}
+.mini-mascot{width:92px;height:148px;pointer-events:none}
+.mini-mascot svg{width:100%;height:100%}
 .dressbtn{margin-top:4px;border:none;border-radius:22px;background:#fff;height:62px;min-width:118px;padding:4px 12px;font-size:30px;box-shadow:0 5px 0 rgba(0,0,0,.12);color:#5c3a4a;display:flex;flex-direction:column;align-items:center;justify-content:center}
 .dressbtn small{font-size:14px;font-weight:700}
 body[data-screen="home"] .floater,body[data-screen="splash"] .floater{display:none}
@@ -109,6 +118,7 @@ body[data-screen="home"] .floater,body[data-screen="splash"] .floater{display:no
 <h1 id="hi"></h1>
 <p class="off" id="off"></p>
 <button type="button" id="dressbtn" class="dressbtn">👗<small id="dresslabel">Pattu</small></button>
+<button type="button" class="dressbtn" data-go="pick">🙂<small>Choose me</small></button>
 </div>
 <div class="home">
 <button class="big" style="background:#ff7aa2" data-go="cards">🍎<small>Words</small></button>
@@ -180,6 +190,7 @@ body[data-screen="home"] .floater,body[data-screen="splash"] .floater{display:no
 <div id="hand" class="hand" aria-hidden="true">👆</div>
 <div class="screen" id="sort"><button class="back" data-back="hub">⬅️</button><div class="copy-pic" id="sortitem">🍎</div><div class="bins"><button class="bin" data-bin="fruit">🍎</button><button class="bin" data-bin="animal">🐶</button></div></div>
 <div class="screen" id="stickers"><button class="back">🏠</button><h1 id="stickn">⭐</h1><div class="stickgrid" id="stickgrid"></div></div>
+<div class="screen" id="pick"><button class="back">🏠</button><h1>Choose me</h1><div class="grid avgrid" id="pickgrid"></div></div>
 
 <script>
 const CHILD_NAME="Aradia";
@@ -634,7 +645,19 @@ function mascotSVG(p){return `<svg viewBox="0 0 200 320" xmlns="http://www.w3.or
 </svg>`;}
 $('#mascot').innerHTML=mascotSVG('a');
 const flo=document.createElement('div');flo.id='floater';flo.className='mascot floater';flo.setAttribute('aria-hidden','true');flo.innerHTML=mascotSVG('b');document.body.appendChild(flo);
-function applyOutfit(mode){outfit=mode;$$('.mascot').forEach(m=>{m.dataset.outfit=mode});const lab=$('#dresslabel');if(lab)lab.textContent=mode==='modern'?'Frock':'Pattu';try{localStorage.setItem('ll-outfit',mode)}catch(e){}}
+function applyOutfit(mode){outfit=mode;$$('.mascot,.mini-mascot').forEach(m=>{m.dataset.outfit=mode});const lab=$('#dresslabel');if(lab)lab.textContent=mode==='modern'?'Frock':'Pattu';try{localStorage.setItem('ll-outfit',mode)}catch(e){}}
 applyOutfit(outfit);
 bind($('#dressbtn'),()=>{applyOutfit(outfit==='modern'?'trad':'modern');boop()});
+const AVATARS=['svg','turn-front','turn-threeq','turn-side','turn-back','proportions','expr-happy','expr-big-smile','expr-laughing','expr-cute-tilt','expr-thinking','expr-surprised','expr-playful','expr-pouting','pose-peace','pose-hips','pose-sitting','pose-running','pose-jumping','pose-toy','pose-pointing','pose-looking'];
+let avatar='svg';
+try{const savedAv=localStorage.getItem('ll-avatar');if(AVATARS.includes(savedAv))avatar=savedAv}catch(e){}
+function applyAvatar(id){if(!AVATARS.includes(id))id='svg';avatar=id;try{localStorage.setItem('ll-avatar',id)}catch(e){}
+$$('.mascot').forEach(m=>{m.dataset.avatar=id;let img=m.querySelector('img.avatar-img');if(!img){img=document.createElement('img');img.className='avatar-img';img.alt='';m.appendChild(img)}if(id==='svg'){img.removeAttribute('src')}else img.src='assets/avatars/'+id+'.webp'});
+$$('#pickgrid .avbtn').forEach(b=>b.classList.toggle('on',b.dataset.av===id))}
+const pick=$('#pickgrid');
+AVATARS.forEach(id=>{const b=document.createElement('button');b.type='button';b.className='avbtn';b.dataset.av=id;
+if(id==='svg'){const mini=document.createElement('div');mini.className='mini-mascot';mini.dataset.outfit=outfit;mini.innerHTML=mascotSVG('t');b.appendChild(mini)}
+else{const img=document.createElement('img');img.src='assets/avatars/'+id+'.webp';img.alt='';b.appendChild(img)}
+bind(b,()=>{applyAvatar(id);go('home')});pick.appendChild(b)});
+applyAvatar(avatar);
 </script></body></html>

@@ -1,5 +1,5 @@
-const C='kids-v6';
-const F=['./','./index.html','./manifest.webmanifest','./icon.svg','./sw.js'];
+const C='kids-v7';
+const F=['./','./index.html','./manifest.webmanifest','./icon.svg','./sw.js','./assets/avatars/turn-front.webp','./assets/avatars/turn-threeq.webp','./assets/avatars/turn-side.webp','./assets/avatars/turn-back.webp','./assets/avatars/proportions.webp','./assets/avatars/expr-happy.webp','./assets/avatars/expr-big-smile.webp','./assets/avatars/expr-laughing.webp','./assets/avatars/expr-cute-tilt.webp','./assets/avatars/expr-thinking.webp','./assets/avatars/expr-surprised.webp','./assets/avatars/expr-playful.webp','./assets/avatars/expr-pouting.webp','./assets/avatars/pose-peace.webp','./assets/avatars/pose-hips.webp','./assets/avatars/pose-sitting.webp','./assets/avatars/pose-running.webp','./assets/avatars/pose-jumping.webp','./assets/avatars/pose-toy.webp','./assets/avatars/pose-pointing.webp','./assets/avatars/pose-looking.webp'];
 self.addEventListener('install',e=>{e.waitUntil(caches.open(C).then(c=>c.addAll(F)));self.skipWaiting();});
 self.addEventListener('activate',e=>e.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==C).map(k=>caches.delete(k)))).then(()=>self.clients.claim())));
 self.addEventListener('fetch',e=>{
