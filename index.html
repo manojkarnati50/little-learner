@@ -16,9 +16,12 @@ h1{margin:4px 0 8px;font-size:40px;color:#ff5c8a;text-shadow:3px 3px 0 #fff}
 .big:active,.card:active,.tbtn:active,.lb:active{transform:scale(.94)}
 #home.on{flex-direction:row;justify-content:center;align-items:center;gap:18px}
 .hero{width:280px;display:flex;flex-direction:column;align-items:center}
-.mascot{width:240px;height:280px;pointer-events:none}
+.mascot{width:200px;height:320px;pointer-events:none}
 .mascot svg{width:100%;height:100%;overflow:visible}
-.floater{position:fixed;right:8px;bottom:6px;width:108px;height:130px;z-index:7;pointer-events:none}
+.floater{position:fixed;right:6px;bottom:4px;width:96px;height:154px;z-index:7;pointer-events:none}
+.mascot[data-outfit="modern"] .outfit-trad,.mascot[data-outfit="trad"] .outfit-mod{display:none}
+.dressbtn{margin-top:4px;border:none;border-radius:22px;background:#fff;height:62px;min-width:118px;padding:4px 12px;font-size:30px;box-shadow:0 5px 0 rgba(0,0,0,.12);color:#5c3a4a;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.dressbtn small{font-size:14px;font-weight:700}
 body[data-screen="home"] .floater,body[data-screen="splash"] .floater{display:none}
 .mascot.cheer{animation:cheer .7s ease}
 @keyframes cheer{30%{transform:translateY(-16px) scale(1.06) rotate(-4deg)}60%{transform:translateY(-4px) rotate(4deg)}}
@@ -94,38 +97,10 @@ body[data-screen="home"] .floater,body[data-screen="splash"] .floater{display:no
 
 <div class="screen" id="home">
 <div class="hero">
-<div id="mascot" class="mascot" aria-hidden="true">
-<svg viewBox="0 0 200 280">
-<ellipse cx="100" cy="250" rx="46" ry="10" fill="rgba(0,0,0,.08)"/>
-<path d="M58 118c-8 28-6 70 4 92 8 8 22 6 28-8 2-28 8-52 8-70-14-6-28-8-40-14z" fill="#241c18"/>
-<path d="M142 118c8 28 6 70-4 92-8 8-22 6-28-8-2-28-8-52-8-70 14-6 28-8 40-14z" fill="#241c18"/>
-<path d="M78 168c-6 36-4 70 2 84h18l6-46 8 46h18c6-14 8-48 2-84-12 10-40 10-54 0z" fill="#3d6fbe"/>
-<polygon points="96,214 99,222 108,222 101,227 104,236 96,231 88,236 91,227 84,222 93,222" fill="#ffd84d"/>
-<path d="M74 150c18-16 40-16 54 0 2 22-4 40-27 46-23-6-29-24-27-46z" fill="#fffefb"/>
-<circle cx="92" cy="168" r="7" fill="#e23b3b"/><circle cx="108" cy="173" r="7" fill="#e23b3b"/>
-<path d="M92 162c6-12 12-8 16 6" fill="none" stroke="#3e9b4a" stroke-width="2.4" stroke-linecap="round"/>
-<ellipse cx="52" cy="196" rx="9" ry="8" fill="#d2956b"/>
-<path d="M78 156c-22 10-30 28-28 42" fill="none" stroke="#d2956b" stroke-width="14" stroke-linecap="round"/>
-<g class="wave-arm">
-<animateTransform attributeName="transform" type="rotate" values="6 128 152;-32 128 152;6 128 152" dur="0.95s" repeatCount="indefinite"/>
-<path d="M126 150c22-8 40-24 46-48" fill="none" stroke="#d2956b" stroke-width="14" stroke-linecap="round"/>
-<ellipse cx="174" cy="98" rx="11" ry="10" fill="#d2956b"/>
-</g>
-<rect x="90" y="132" width="20" height="20" rx="8" fill="#d2956b"/>
-<ellipse cx="100" cy="100" rx="44" ry="48" fill="#d2956b"/>
-<ellipse cx="58" cy="104" rx="8" ry="11" fill="#d2956b"/>
-<ellipse cx="142" cy="104" rx="8" ry="11" fill="#d2956b"/>
-<path d="M58 96c8-40 28-58 52-58 28 2 46 22 48 52-12-22-30-30-48-26-16 2-34 8-52 32z" fill="#2b211c"/>
-<path d="M64 108c10-16 22-18 34-8 8 6 6 14-2 12-10-8-20-6-28 4-4 4-8 2-4-8z" fill="#2b211c"/>
-<path d="M108 78c14-10 32-6 40 16 2 6-4 8-8 4-6-12-16-16-26-10-6 4-10 2-6-10z" fill="#3a2e28"/>
-<ellipse cx="84" cy="104" rx="8" ry="10" fill="#2a241f"/><ellipse cx="118" cy="104" rx="8" ry="10" fill="#2a241f"/>
-<circle cx="87" cy="100" r="2.6" fill="#fff"/><circle cx="121" cy="100" r="2.6" fill="#fff"/>
-<ellipse cx="70" cy="118" rx="7" ry="4" fill="#e7a08a"/><ellipse cx="130" cy="118" rx="7" ry="4" fill="#e7a08a"/>
-<path d="M88 122c6 8 18 8 24 0" fill="none" stroke="#8a4b3a" stroke-width="2.6" stroke-linecap="round"/>
-</svg>
-</div>
+<div id="mascot" class="mascot" data-outfit="trad" aria-hidden="true"></div>
 <h1 id="hi"></h1>
 <p class="off" id="off"></p>
+<button type="button" id="dressbtn" class="dressbtn">👗<small id="dresslabel">Pattu</small></button>
 </div>
 <div class="home">
 <button class="big" style="background:#ff7aa2" data-go="cards">🍎<small>Words</small></button>
@@ -210,7 +185,7 @@ const WORDS=[
 const $=s=>document.querySelector(s);
 const $$=s=>[...document.querySelectorAll(s)];
 function spoken(t){return String(t).split(CHILD_NAME).join(CHILD_SAY)}
-$('#hi').textContent="Hello, "+CHILD_NAME+"! 👋";
+$('#hi').textContent="Hello "+CHILD_NAME+"!";
 document.addEventListener('gesturestart',e=>e.preventDefault());
 let lastT=0;document.addEventListener('touchend',e=>{const n=Date.now();if(n-lastT<350)e.preventDefault();lastT=n},{passive:false});
 document.addEventListener('touchmove',e=>{if(!e.target.closest('.grid,.board,.tray,canvas'))e.preventDefault()},{passive:false});
@@ -245,7 +220,7 @@ function confetti(){cheer();cf.width=innerWidth;cf.height=innerHeight;for(let i=
 function cfl(){cx.clearRect(0,0,cf.width,cf.height);P.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.vy+=.6;p.vx*=.99;p.l--;cx.fillStyle=p.c;cx.fillRect(p.x,p.y,p.r,p.r*1.6)});P=P.filter(p=>p.l>0&&p.y<cf.height+20);if(P.length)requestAnimationFrame(cfl);else cx.clearRect(0,0,cf.width,cf.height)}
 function win(msg,id,emoji){confetti();say(msg||('Yes! Well done, '+CHILD_NAME+'!'));addStar(id,emoji)}
 let startedApp=false;
-function startApp(e){if(startedApp)return;startedApp=true;if(e&&e.cancelable){try{e.preventDefault()}catch(err){}}unlockAudio();speakItems([{text:'Hello, '+CHILD_NAME+'!',lang:'en-US',rate:.9}]);show('home')}
+function startApp(e){if(startedApp)return;startedApp=true;if(e&&e.cancelable){try{e.preventDefault()}catch(err){}}unlockAudio();speakItems([{text:'Hello '+CHILD_NAME+'!',lang:'en-US',rate:.9}]);show('home')}
 $('#startbtn').addEventListener('touchend',startApp,{passive:false});
 $('#startbtn').addEventListener('click',startApp);
 function act(fn){let locked=false;return function(e){if(locked)return;locked=true;setTimeout(()=>{locked=false},350);if(e&&e.cancelable){try{e.preventDefault()}catch(err){}}unlockAudio();fn(e)}}
@@ -277,7 +252,7 @@ const PHR=[
 ["🛝",["Can","I","play?"],"விளையாடலாமா?","ఆడొచ్చా?"],
 ["🙋",["Help,","please"],"உதவி, ப்ளீஸ்","సహాయం, ప్లీజ్"],
 ["🙏",["Thank","you!"],"நன்றி","ధన్యవాదాలు"],
-["👋",["Hello!"],"வணக்கம்","నమస్తే"],
+["👋",["Hello",CHILD_NAME+"!"],"வணக்கம்","నమస్తే"],
 ["🍽️",["I'm","hungry"],"பசிக்குது","ఆకలి"],
 ["🤗",["Bye","bye!"],"போய் வரேன்","వెళ్తా"],
 ["🥺",["Sorry"],"மன்னிக்கவும்","క్షమించండి"]];
@@ -518,5 +493,95 @@ $('#sortitem').addEventListener('pointerup',e=>{if(!sortHold)return;sortHold=fal
 function markOff(){$$('.off').forEach(el=>{el.textContent='available offline ✓'})}
 if('serviceWorker' in navigator&&location.protocol.startsWith('http')){
 navigator.serviceWorker.register('sw.js').then(reg=>{if(navigator.serviceWorker.controller)markOff();navigator.serviceWorker.addEventListener('controllerchange',markOff);return navigator.serviceWorker.ready}).then(markOff).catch(()=>{})}
-const flo=$('#mascot').cloneNode(true);flo.id='floater';flo.classList.add('floater');document.body.appendChild(flo);
+let outfit='trad';
+try{const saved=localStorage.getItem('ll-outfit');if(saved==='modern'||saved==='trad')outfit=saved}catch(e){}
+function mascotSVG(p){return `<svg viewBox="0 0 200 320" xmlns="http://www.w3.org/2000/svg">
+<defs>
+<radialGradient id="${p}skin" cx="36%" cy="30%" r="75%"><stop offset="0%" stop-color="#fbe0c8"/><stop offset="55%" stop-color="#e8b08c"/><stop offset="100%" stop-color="#d4926e"/></radialGradient>
+<radialGradient id="${p}blush" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#ff7f9e" stop-opacity=".75"/><stop offset="100%" stop-color="#ff7f9e" stop-opacity="0"/></radialGradient>
+<linearGradient id="${p}hair" x1="0" y1="0" x2=".2" y2="1"><stop offset="0%" stop-color="#7a5248"/><stop offset="40%" stop-color="#4a3028"/><stop offset="100%" stop-color="#241612"/></linearGradient>
+<linearGradient id="${p}gold" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#fff8d0"/><stop offset="40%" stop-color="#f2c44e"/><stop offset="100%" stop-color="#b07d0c"/></linearGradient>
+<radialGradient id="${p}iris" cx="32%" cy="30%" r="72%"><stop offset="0%" stop-color="#c88848"/><stop offset="50%" stop-color="#6a381c"/><stop offset="100%" stop-color="#2a140c"/></radialGradient>
+<linearGradient id="${p}silk" x1="0" y1="0" x2=".3" y2="1"><stop offset="0%" stop-color="#8b78ee"/><stop offset="42%" stop-color="#4454c4"/><stop offset="100%" stop-color="#2c3484"/></linearGradient>
+<linearGradient id="${p}blouse" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#f472c0"/><stop offset="100%" stop-color="#9a2876"/></linearGradient>
+<linearGradient id="${p}hem" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#ffc0de"/><stop offset="100%" stop-color="#e45498"/></linearGradient>
+<linearGradient id="${p}frock" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#ff9cc8"/><stop offset="40%" stop-color="#ff4b98"/><stop offset="100%" stop-color="#e01874"/></linearGradient>
+<linearGradient id="${p}frill" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#ffe0ef"/><stop offset="100%" stop-color="#ff74b0"/></linearGradient>
+</defs>
+<ellipse cx="100" cy="306" rx="50" ry="7" fill="rgba(70,30,50,.14)"/>
+<g class="outfit-trad">
+<path d="M68 196c-16 34-28 70-34 108h132c-6-38-18-74-34-108-10 8-42 10-64 0z" fill="url(#${p}silk)"/>
+<path d="M86 214c6 28 8 60 6 86" fill="none" stroke="#fff" stroke-width="5" opacity=".18" stroke-linecap="round"/>
+<g fill="url(#${p}gold)">
+<path d="M86 228l2.4 2.6-2.4 2.6-2.4-2.6z"/><path d="M112 246l2.2 2.4-2.2 2.4-2.2-2.4z"/><path d="M78 258l2 2.2-2 2.2-2-2.2z"/><path d="M124 224l2 2.2-2 2.2-2-2.2z"/><path d="M96 270l2.2 2.4-2.2 2.4-2.2-2.4z"/>
+<circle cx="108" cy="232" r="1.8"/><circle cx="90" cy="248" r="1.5"/><circle cx="120" cy="262" r="1.6"/>
+</g>
+<path d="M38 274c20 10 42 14 62 14s42-4 62-14l6 30c-22 10-46 14-68 14s-46-4-68-14z" fill="url(#${p}gold)"/>
+<path d="M46 282c18 8 38 11 54 11s36-3 54-11l3 14c-18 8-38 11-57 11s-39-3-57-11z" fill="url(#${p}hem)"/>
+<path d="M52 286c16 5 34 8 48 8s32-3 48-8" fill="none" stroke="url(#${p}gold)" stroke-width="1.8"/>
+</g>
+<g class="outfit-mod">
+<path d="M78 176 Q100 196 124 174 L132 210 C148 250 152 280 146 304 L54 304 C48 280 52 250 68 210 Z" fill="url(#${p}frock)"/>
+<path d="M88 210c4 22 6 52 4 88" fill="none" stroke="#fff" stroke-width="4" opacity=".22" stroke-linecap="round"/>
+</g>
+<path d="M72 176 Q44 198 48 236" fill="none" stroke="url(#${p}skin)" stroke-width="14" stroke-linecap="round"/>
+<ellipse cx="46" cy="242" rx="10" ry="9" fill="url(#${p}skin)"/>
+<path d="M38 222c8 3 14 3 20-1" fill="none" stroke="url(#${p}gold)" stroke-width="2.6" stroke-linecap="round"/>
+<path d="M37 228c9 3 15 3 21-1" fill="none" stroke="url(#${p}gold)" stroke-width="2.6" stroke-linecap="round"/>
+<g class="wave-arm">
+<animateTransform attributeName="transform" type="rotate" values="6 130 172;-26 130 172;6 130 172" dur="1s" repeatCount="indefinite"/>
+<path d="M128 174 Q158 150 166 118" fill="none" stroke="url(#${p}skin)" stroke-width="14" stroke-linecap="round"/>
+<ellipse cx="170" cy="110" rx="10" ry="9" fill="url(#${p}skin)"/>
+<path d="M154 132c8 2 14 2 18-3" fill="none" stroke="url(#${p}gold)" stroke-width="2.6" stroke-linecap="round"/>
+<path d="M156 138c8 2 14 2 18-3" fill="none" stroke="url(#${p}gold)" stroke-width="2.6" stroke-linecap="round"/>
+</g>
+<g class="outfit-trad">
+<ellipse cx="62" cy="178" rx="16" ry="12" fill="url(#${p}blouse)"/>
+<ellipse cx="138" cy="176" rx="15" ry="11" fill="url(#${p}blouse)"/>
+<path d="M48 178c6 8 11 8 16 0 6 8 11 8 16 0" fill="url(#${p}frill)"/>
+<path d="M124 174c6 8 10 8 16 0 5 8 10 8 15 0" fill="url(#${p}frill)"/>
+<path d="M72 166 Q100 154 128 166 L124 198 Q100 208 76 198 Z" fill="url(#${p}blouse)"/>
+<path d="M70 196 Q100 206 130 196" fill="none" stroke="url(#${p}gold)" stroke-width="7" stroke-linecap="round"/>
+<path d="M82 158 Q100 170 118 158" fill="none" stroke="url(#${p}gold)" stroke-width="2.3"/>
+<circle cx="100" cy="172" r="3.4" fill="url(#${p}gold)"/>
+<path d="M100 175 l2.6 5.2 -2.6 2 -2.6-2z" fill="url(#${p}gold)"/>
+</g>
+<g class="outfit-mod">
+<path d="M58 162c7 9 12 9 18 0 6 10 12 10 18 1" fill="url(#${p}frill)"/>
+<path d="M112 160c7 9 12 9 18 0 6 10 12 10 20 1" fill="url(#${p}frill)"/>
+</g>
+<rect x="90" y="146" width="20" height="22" rx="9" fill="url(#${p}skin)"/>
+<ellipse cx="100" cy="98" rx="56" ry="58" fill="url(#${p}skin)"/>
+<ellipse cx="48" cy="104" rx="8" ry="11" fill="url(#${p}skin)"/>
+<ellipse cx="152" cy="104" rx="8" ry="11" fill="url(#${p}skin)"/>
+<path d="M50 92c4-44 26-64 54-66 32 0 50 24 52 58-12-26-30-38-50-36-18 2-38 12-56 44z" fill="url(#${p}hair)"/>
+<path d="M58 108c10-20 24-24 36-10 5 6 3 12-4 10-10-8-20-6-28 6-5 6-9 2-4-6z" fill="url(#${p}hair)"/>
+<ellipse cx="52" cy="58" rx="20" ry="16" fill="url(#${p}hair)"/>
+<ellipse cx="40" cy="50" rx="9" ry="8" fill="url(#${p}hair)"/>
+<ellipse cx="46" cy="48" rx="5" ry="3" fill="#8d655c" opacity=".65"/>
+<circle cx="36" cy="56" r="3" fill="url(#${p}gold)"/>
+<circle cx="50" cy="42" r="2.3" fill="url(#${p}gold)"/>
+<path d="M100 40 v36" fill="none" stroke="url(#${p}gold)" stroke-width="1.6"/>
+<circle cx="100" cy="78" r="3.3" fill="url(#${p}gold)"/>
+<path d="M100 81 l2.2 4 -2.2 1.5 -2.2-1.5z" fill="url(#${p}gold)"/>
+<ellipse cx="78" cy="108" rx="15" ry="17" fill="#fff"/>
+<ellipse cx="124" cy="108" rx="15" ry="17" fill="#fff"/>
+<ellipse cx="78" cy="110" rx="9" ry="10.5" fill="url(#${p}iris)"/>
+<ellipse cx="124" cy="110" rx="9" ry="10.5" fill="url(#${p}iris)"/>
+<circle cx="78" cy="112" r="4.4" fill="#1a0e0a"/><circle cx="124" cy="112" r="4.4" fill="#1a0e0a"/>
+<circle cx="82" cy="106" r="2.7" fill="#fff"/><circle cx="128" cy="106" r="2.7" fill="#fff"/>
+<circle cx="75" cy="114" r="1.15" fill="#fff" opacity=".85"/><circle cx="121" cy="114" r="1.15" fill="#fff" opacity=".85"/>
+<path d="M62 92c8-6 15-6 21-1" fill="none" stroke="#5a382e" stroke-width="2.2" stroke-linecap="round"/>
+<path d="M116 91c8-6 16-6 23-1" fill="none" stroke="#5a382e" stroke-width="2.2" stroke-linecap="round"/>
+<ellipse cx="60" cy="124" rx="9" ry="5.5" fill="url(#${p}blush)"/><ellipse cx="140" cy="124" rx="9" ry="5.5" fill="url(#${p}blush)"/>
+<path d="M96 122c2 3.5 6 3.5 8 0" fill="none" stroke="#c98a7c" stroke-width="1.5" stroke-linecap="round"/>
+<path d="M90 136c6 7 14 7 20 0" fill="none" stroke="#c45468" stroke-width="2.5" stroke-linecap="round"/>
+<circle cx="100" cy="96" r="2.8" fill="#e23b4a"/>
+<circle cx="100" cy="96" r="4" fill="none" stroke="url(#${p}gold)" stroke-width=".8"/>
+</svg>`;}
+$('#mascot').innerHTML=mascotSVG('a');
+const flo=document.createElement('div');flo.id='floater';flo.className='mascot floater';flo.setAttribute('aria-hidden','true');flo.innerHTML=mascotSVG('b');document.body.appendChild(flo);
+function applyOutfit(mode){outfit=mode;$$('.mascot').forEach(m=>{m.dataset.outfit=mode});const lab=$('#dresslabel');if(lab)lab.textContent=mode==='modern'?'Frock':'Pattu';try{localStorage.setItem('ll-outfit',mode)}catch(e){}}
+applyOutfit(outfit);
+bind($('#dressbtn'),()=>{applyOutfit(outfit==='modern'?'trad':'modern');boop()});
 </script></body></html>
