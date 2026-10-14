@@ -1,0 +1,199 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="Learn">
+<link rel="manifest" href="manifest.webmanifest"><link rel="apple-touch-icon" href="icon.svg">
+<title>Little Learner</title>
+<style>
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+html,body{margin:0;height:100%;overflow:hidden;overscroll-behavior:none;touch-action:none;font-family:"Arial Rounded MT Bold","Trebuchet MS",Arial,sans-serif;background:linear-gradient(160deg,#fff4d6,#ffe0ec 60%,#d9f2ff)}
+.screen{position:fixed;inset:0;display:none;flex-direction:column;align-items:center;padding:20px}
+.screen.on{display:flex}
+h1{margin:6px 0 14px;font-size:44px;color:#ff5c8a;text-shadow:3px 3px 0 #fff}
+.home{display:grid;grid-template-columns:repeat(3,230px);gap:26px;margin-top:10px}
+.big{width:230px;height:200px;border:none;border-radius:40px;font-size:96px;color:#fff;box-shadow:0 10px 0 rgba(0,0,0,.15);animation:bob 2.4s ease-in-out infinite;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.big small{font-size:22px;margin-top:4px}
+.big:active,.card:active,.tbtn:active{transform:scale(.92)}
+@keyframes bob{50%{transform:translateY(-8px)}}
+.back{position:fixed;left:16px;top:16px;width:120px;height:120px;border-radius:50%;border:none;background:#fff;font-size:64px;box-shadow:0 6px 0 rgba(0,0,0,.12);z-index:5}
+.grid{display:grid;grid-template-columns:repeat(5,180px);gap:18px;overflow-y:auto;touch-action:pan-y;-webkit-overflow-scrolling:touch;padding:10px 10px 40px;margin-left:120px;height:calc(100% - 20px)}
+.card{width:180px;height:200px;border:none;border-radius:30px;background:#fff;box-shadow:0 8px 0 rgba(0,0,0,.1);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:6px;transition:transform .15s}
+.card .e{font-size:80px;line-height:1}.card .en{font-size:30px;color:#333;margin-top:4px}.card .tt{font-size:15px;color:#888}
+.card.play{animation:pop .5s}
+@keyframes pop{40%{transform:scale(1.15) rotate(-4deg)}}
+.wig{animation:wig .5s}@keyframes wig{20%,60%{transform:rotate(-8deg)}40%,80%{transform:rotate(8deg)}}
+.row{display:flex;gap:40px;margin-top:80px}
+.row .card{width:260px;height:280px}.row .card .e{font-size:150px}
+.ph{width:300px;height:210px}.ph .en{font-size:24px;text-align:center}
+.tbtn{border:none;border-radius:50%;width:120px;height:120px;font-size:56px;background:#fff;box-shadow:0 6px 0 rgba(0,0,0,.12)}
+#tr{flex-direction:row;align-items:center;justify-content:center;gap:24px}
+#cv{background:#fff;border-radius:40px;box-shadow:0 10px 0 rgba(0,0,0,.1);touch-action:none}
+.side{display:flex;flex-direction:column;gap:20px}
+#mic .rec{width:220px;height:220px;font-size:120px}
+#conf{position:fixed;inset:0;pointer-events:none;z-index:9}
+.star{position:fixed;font-size:160px;left:50%;top:40%;transform:translate(-50%,-50%) scale(0);z-index:10;pointer-events:none}
+.star.go{animation:star 1.2s ease-out}@keyframes star{30%{transform:translate(-50%,-50%) scale(1.3)}70%{transform:translate(-50%,-50%) scale(1)}100%{transform:translate(-50%,-90%) scale(0);opacity:0}}
+</style></head><body>
+<canvas id="conf"></canvas><div class="star" id="star">🌟</div>
+
+<div class="screen on" id="home"><h1 id="hi"></h1><div class="home">
+<button class="big" style="background:#ff7aa2" data-go="cards">🍎<small>Words</small></button>
+<button class="big" style="background:#7ac8ff;animation-delay:.3s" data-go="school">🏫<small>School</small></button>
+<button class="big" style="background:#ffb84d;animation-delay:.6s" data-go="game">👂<small>Find it</small></button>
+<button class="big" style="background:#8bd36a;animation-delay:.9s" data-go="tr">✏️<small>A B C</small></button>
+<button class="big" style="background:#b98bff;animation-delay:1.2s" data-go="mic">🎤<small>Say it</small></button>
+</div></div>
+
+<div class="screen" id="cards"><button class="back">🏠</button><div class="grid" id="cardgrid"></div></div>
+<div class="screen" id="school"><button class="back">🏠</button><div class="grid" id="schoolgrid" style="grid-template-columns:repeat(3,300px)"></div></div>
+<div class="screen" id="game"><button class="back">🏠</button><button class="tbtn" id="again" style="margin-top:10px">🔊</button><div class="row" id="opts"></div></div>
+<div class="screen" id="tr"><button class="back">🏠</button>
+<div class="side"><button class="tbtn" id="prevL">⬅️</button><button class="tbtn" id="watch">👀</button><button class="tbtn" id="clr">🔄</button></div>
+<canvas id="cv"></canvas>
+<div class="side"><button class="tbtn" id="nextL">➡️</button><button class="tbtn" id="sayL">🔊</button></div></div>
+<div class="screen" id="mic"><button class="back">🏠</button><h1>🎤</h1><div class="row"><button class="tbtn rec" id="recb">🔴</button><button class="tbtn rec" id="playb" style="opacity:.4">▶️</button></div></div>
+
+<script>
+// ===== CONFIG: change her name here =====
+const CHILD_NAME = "little one";
+// ========================================
+const WORDS=[
+["👩","Mother","அம்மா","అమ్మ"],["👨","Father","அப்பா","నాన్న"],["👶","Baby","பாப்பா","పాప"],["👵","Grandma","பாட்டி","అమ్మమ్మ"],["👩‍🏫","Teacher","டீச்சர்","టీచర్"],
+["💧","Water","தண்ணீர்","నీళ్ళు"],["🥛","Milk","பால்","పాలు"],["🍚","Rice","சாதம்","అన్నం"],["🍌","Banana","வாழைப்பழம்","అరటిపండు"],["🥭","Mango","மாம்பழம்","మామిడిపండు"],
+["🍎","Apple","ஆப்பிள்","ఆపిల్"],["🥚","Egg","முட்டை","గుడ్డు"],["🐶","Dog","நாய்","కుక్క"],["🐱","Cat","பூனை","పిల్లి"],["🐄","Cow","பசு","ఆవు"],
+["🐘","Elephant","யானை","ఏనుగు"],["🐦","Bird","பறவை","పక్షి"],["🐟","Fish","மீன்","చేప"],["🔴","Red","சிவப்பு","ఎరుపు"],["🔵","Blue","நீலம்","నీలం"],
+["🟢","Green","பச்சை","ఆకుపచ్చ"],["🟡","Yellow","மஞ்சள்","పసుపు"],["👀","Eyes","கண்கள்","కళ్ళు"],["👃","Nose","மூக்கு","ముక్కు"],["👂","Ears","காதுகள்","చెవులు"],
+["👄","Mouth","வாய்","నోరు"],["✋","Hand","கை","చేయి"],["📖","Book","புத்தகம்","పుస్తకం"],["✏️","Pencil","பென்சில்","పెన్సిల్"],["🎒","Bag","பை","సంచి"],["⚽","Ball","பந்து","బంతి"]];
+const PHR=[
+["🚽","I want to go to the toilet, please.","நான் டாய்லெட் போகணும்","నేను బాత్రూమ్‌కి వెళ్ళాలి"],
+["💧","I want water, please.","எனக்குத் தண்ணீர் வேணும்","నాకు నీళ్ళు కావాలి"],
+["😊","My name is "+CHILD_NAME+".","என் பெயர் "+CHILD_NAME,"నా పేరు "+CHILD_NAME],
+["🛝","Can I play?","நான் விளையாடலாமா?","నేను ఆడుకోవచ్చా?"],
+["🙋","Help me, please.","எனக்கு உதவி பண்ணுங்க","నాకు సహాయం చేయండి"],
+["🙏","Thank you!","நன்றி","ధన్యవాదాలు"],
+["👋","Hello teacher!","வணக்கம் டீச்சர்","నమస్తే టీచర్"],
+["🍽️","I am hungry.","எனக்குப் பசிக்குது","నాకు ఆకలిగా ఉంది"],
+["🤗","Bye bye!","போயிட்டு வரேன்","వెళ్ళొస్తాను"],
+["🥺","Sorry.","மன்னிச்சிடுங்க","క్షమించండి"]];
+const $=s=>document.querySelector(s);
+document.getElementById('hi').textContent="Hello, "+CHILD_NAME+"! 👋";
+// stop zoom / bounce
+document.addEventListener('gesturestart',e=>e.preventDefault());
+let lastT=0;document.addEventListener('touchend',e=>{const n=Date.now();if(n-lastT<350)e.preventDefault();lastT=n},{passive:false});
+document.addEventListener('touchmove',e=>{if(!e.target.closest('.grid'))e.preventDefault()},{passive:false});
+document.addEventListener('contextmenu',e=>e.preventDefault());
+// ===== audio =====
+let AC;function ac(){if(!AC)AC=new (window.AudioContext||window.webkitAudioContext)();if(AC.state==='suspended')AC.resume();return AC}
+function tone(f,t0,d,type='sine',v=.2){const c=ac(),o=c.createOscillator(),g=c.createGain();o.type=type;o.frequency.value=f;g.gain.setValueAtTime(v,c.currentTime+t0);g.gain.exponentialRampToValueAtTime(.001,c.currentTime+t0+d);o.connect(g).connect(c.destination);o.start(c.currentTime+t0);o.stop(c.currentTime+t0+d)}
+function boop(){tone(660,0,.12,'triangle',.15)}
+function yay(){[523,659,784,1047].forEach((f,i)=>tone(f,i*.1,.3,'triangle'));clap()}
+function clap(){const c=ac();for(let k=0;k<8;k++){const b=c.createBuffer(1,c.sampleRate*.08,c.sampleRate),d=b.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/d.length,3);const s=c.createBufferSource(),f=c.createBiquadFilter(),g=c.createGain();f.type='bandpass';f.frequency.value=1500;g.gain.value=.5;s.buffer=b;s.connect(f).connect(g).connect(c.destination);s.start(c.currentTime+.35+k*.13+Math.random()*.03)}}
+// ===== speech =====
+const SS=window.speechSynthesis;let VO=[];function lv(){VO=SS?SS.getVoices():[]}if(SS){lv();SS.onvoiceschanged=lv}
+function voice(l){const p=l.split('-')[0];return VO.find(v=>v.lang.replace('_','-')===l)||VO.find(v=>v.lang.toLowerCase().startsWith(p))}
+function say(text,lang='en-IN',rate=.8){return new Promise(res=>{if(!SS){res();return}const v=voice(lang);if(!v&&lang!=='en-IN'&&VO.length){res(false);return}
+const u=new SpeechSynthesisUtterance(text);u.lang=lang;if(v)u.voice=v;u.rate=rate;u.pitch=1.15;let done=false;const f=()=>{if(!done){done=true;res(true)}};u.onend=f;u.onerror=f;setTimeout(f,6000);SS.speak(u)})}
+function hush(){if(SS)SS.cancel()}
+// ===== confetti =====
+const cf=$('#conf'),cx=cf.getContext('2d');let P=[];
+function confetti(){cf.width=innerWidth;cf.height=innerHeight;for(let i=0;i<140;i++)P.push({x:innerWidth/2,y:innerHeight/2,vx:(Math.random()-.5)*22,vy:-Math.random()*22-4,c:`hsl(${Math.random()*360},90%,60%)`,r:Math.random()*6+5,l:120});const st=$('#star');st.classList.remove('go');void st.offsetWidth;st.classList.add('go');yay();if(P.length<=140)requestAnimationFrame(cfl)}
+function cfl(){cx.clearRect(0,0,cf.width,cf.height);P.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.vy+=.6;p.vx*=.99;p.l--;cx.fillStyle=p.c;cx.fillRect(p.x,p.y,p.r,p.r*1.6)});P=P.filter(p=>p.l>0&&p.y<cf.height+20);if(P.length)requestAnimationFrame(cfl);else cx.clearRect(0,0,cf.width,cf.height)}
+// ===== nav =====
+function go(id){hush();boop();document.querySelectorAll('.screen').forEach(s=>s.classList.toggle('on',s.id===id));if(id==='game')newRound();if(id==='tr')setupTrace()}
+document.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>go(b.dataset.go));
+document.querySelectorAll('.back').forEach(b=>b.onclick=()=>go('home'));
+// ===== cards =====
+const g=$('#cardgrid');WORDS.forEach(w=>{const b=document.createElement('button');b.className='card';b.innerHTML=`<div class="e">${w[0]}</div><div class="en">${w[1]}</div><div class="tt">${w[2]}<br>${w[3]}</div>`;
+b.onclick=async()=>{hush();b.classList.remove('play');void b.offsetWidth;b.classList.add('play');await say(w[2],'ta-IN');await say(w[3],'te-IN');await say(w[1],'en-IN',.75)};g.appendChild(b)});
+// ===== school =====
+const sg=$('#schoolgrid');PHR.forEach(p=>{const d=document.createElement('div');d.style.cssText='display:flex;flex-direction:column;align-items:center;gap:6px';
+const b=document.createElement('button');b.className='card ph';b.innerHTML=`<div class="e">${p[0]}</div><div class="en">${p[1]}</div>`;b.onclick=()=>{hush();b.classList.remove('play');void b.offsetWidth;b.classList.add('play');say(p[1],'en-IN',.6)};
+const r=document.createElement('div');r.style.cssText='display:flex;gap:12px';
+const t=document.createElement('button');t.className='tbtn';t.style.cssText='width:140px;height:120px;border-radius:30px;font-size:24px';t.innerHTML='🔊<br>தமிழ்';t.onclick=()=>{hush();say(p[2],'ta-IN')};
+const te=t.cloneNode();te.innerHTML='🔊<br>తెలుగు';te.onclick=()=>{hush();say(p[3],'te-IN')};r.append(t,te);d.append(b,r);sg.appendChild(d)});
+// ===== listen & tap =====
+let target;
+function newRound(){const pool=WORDS.filter(w=>!['Mother','Father','Grandma','Teacher','Baby'].includes(w[1]));const sh=pool.sort(()=>Math.random()-.5).slice(0,3);target=sh[Math.floor(Math.random()*3)];
+const o=$('#opts');o.innerHTML='';sh.forEach(w=>{const b=document.createElement('button');b.className='card';b.innerHTML=`<div class="e">${w[0]}</div>`;
+b.onclick=()=>{if(w===target){confetti();say('Yes! '+w[1]+'! Well done, '+CHILD_NAME+'!');setTimeout(newRound,2600)}else{b.classList.remove('wig');void b.offsetWidth;b.classList.add('wig');say('Try again. Where is the '+target[1].toLowerCase()+'?')}};o.appendChild(b)});
+setTimeout(ask,400)}
+function ask(){hush();say('Where is the '+target[1].toLowerCase()+'?')}
+$('#again').onclick=ask;
+// ===== tracing =====
+// letters on a 0..1 box; each stroke = list of points in drawing order
+function arc(cx,cy,rx,ry,a0,a1,n=14){const p=[];for(let i=0;i<=n;i++){const a=(a0+(a1-a0)*i/n)*Math.PI/180;p.push([cx+rx*Math.cos(a),cy+ry*Math.sin(a)])}return p}
+const T=.1,B=.9,L=.2,R=.8,M=.5;
+const LET={
+A:[[[M,T],[L,B]],[[M,T],[R,B]],[[.32,.62],[.68,.62]]],
+B:[[[.25,T],[.25,B]],[[.25,T],[.55,T],...arc(.55,.3,.2,.2,-90,90),[.25,.5]],[[.25,.5],[.58,.5],...arc(.58,.7,.22,.2,-90,90),[.25,B]]],
+C:[arc(.52,.5,.32,.4,-40,-320,24)],
+D:[[[.25,T],[.25,B]],[[.25,T],[.4,T],...arc(.4,.5,.38,.4,-90,90,20),[.25,B]]],
+E:[[[.25,T],[.25,B]],[[.25,T],[.75,T]],[[.25,.5],[.65,.5]],[[.25,B],[.75,B]]],
+F:[[[.25,T],[.25,B]],[[.25,T],[.75,T]],[[.25,.5],[.65,.5]]],
+G:[[...arc(.52,.5,.32,.4,-40,-320,24),[.84,.55]],[[.6,.55],[.84,.55]]],
+H:[[[.25,T],[.25,B]],[[.75,T],[.75,B]],[[.25,.5],[.75,.5]]],
+I:[[[M,T],[M,B]],[[.3,T],[.7,T]],[[.3,B],[.7,B]]],
+J:[[[.65,T],[.65,.7],...arc(.45,.7,.2,.2,0,180,10)]],
+K:[[[.25,T],[.25,B]],[[.75,T],[.25,.55]],[[.4,.45],[.78,B]]],
+L:[[[.28,T],[.28,B]],[[.28,B],[.75,B]]],
+M:[[[.18,B],[.18,T]],[[.18,T],[M,.65]],[[M,.65],[.82,T]],[[.82,T],[.82,B]]],
+N:[[[.22,B],[.22,T]],[[.22,T],[.78,B]],[[.78,B],[.78,T]]],
+O:[arc(M,.5,.32,.4,-90,270,28)],
+P:[[[.25,T],[.25,B]],[[.25,T],[.55,T],...arc(.55,.32,.22,.22,-90,90),[.25,.54]]],
+Q:[arc(M,.5,.32,.4,-90,270,28),[[.55,.68],[.82,.95]]],
+R:[[[.25,T],[.25,B]],[[.25,T],[.55,T],...arc(.55,.32,.22,.22,-90,90),[.25,.54]],[[.45,.54],[.75,B]]],
+S:[[...arc(.5,.3,.25,.2,-20,-270,14),...arc(.5,.7,.25,.2,-90,160,14)]],
+T:[[[.2,T],[.8,T]],[[M,T],[M,B]]],
+U:[[[.25,T],[.25,.6],...arc(M,.6,.25,.3,180,0,14),[.75,T]]],
+V:[[[.2,T],[M,B]],[[M,B],[.8,T]]],
+W:[[[.12,T],[.3,B]],[[.3,B],[M,.35]],[[M,.35],[.7,B]],[[.7,B],[.88,T]]],
+X:[[[.22,T],[.78,B]],[[.78,T],[.22,B]]],
+Y:[[[.22,T],[M,.5]],[[.78,T],[M,.5]],[[M,.5],[M,B]]],
+Z:[[[.22,T],[.78,T]],[[.78,T],[.22,B]],[[.22,B],[.78,B]]]};
+const KEYS=Object.keys(LET);let li=0,strokes,si,prog,ink=[],busy=false,pid=null,started=false,S=0,ox=0,oy=0,t0=0;
+const cv=$('#cv'),c=cv.getContext('2d');const COLS=['#ff5c8a','#3aa0ff','#ffa020','#2fbf71','#a06bff'];
+function resample(pts,step=.012){const o=[pts[0]];for(let i=1;i<pts.length;i++){const[a,b]=[pts[i-1],pts[i]];const d=Math.hypot(b[0]-a[0],b[1]-a[1]),n=Math.max(1,Math.ceil(d/step));for(let k=1;k<=n;k++)o.push([a[0]+(b[0]-a[0])*k/n,a[1]+(b[1]-a[1])*k/n])}return o}
+function setupTrace(){const h=Math.min(innerHeight-40,760);cv.width=cv.height=h*devicePixelRatio;cv.style.width=cv.style.height=h+'px';S=h;strokes=LET[KEYS[li]].map(s=>resample(s));si=0;prog=0;ink=[];draw();setTimeout(()=>{say(KEYS[li]);if(li===0)demo()},300)}
+const X=p=>(p[0]*S),Y=p=>(p[1]*S);
+function path(pts,upto){c.beginPath();c.moveTo(X(pts[0]),Y(pts[0]));for(let i=1;i<=Math.min(upto,pts.length-1);i++)c.lineTo(X(pts[i]),Y(pts[i]));c.stroke()}
+function draw(){c.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);c.clearRect(0,0,S,S);c.lineCap=c.lineJoin='round';
+// sun at top = "top" cue, ground at bottom
+c.font=S*.07+'px serif';c.fillText('☀️',S*.02,S*.08);c.fillStyle='#c8f0b0';c.fillRect(0,S*.93,S,S*.07);
+strokes.forEach((s,i)=>{c.strokeStyle='#eee';c.lineWidth=S*.11;path(s,1e9);c.setLineDash([2,S*.035]);c.strokeStyle=i<si?'transparent':'#bbb';c.lineWidth=S*.018;path(s,1e9);c.setLineDash([])});
+strokes.forEach((s,i)=>{if(i<si){c.strokeStyle=COLS[i%5];c.lineWidth=S*.075;path(s,1e9)}});
+if(si<strokes.length){const s=strokes[si];c.strokeStyle=COLS[si%5];c.lineWidth=S*.075;if(prog>0)path(s,prog);
+// arrow along current stroke (animated)
+const k=Math.floor(((Date.now()-t0)/40)%s.length);const a=s[Math.min(k,s.length-2)],b=s[Math.min(k+1,s.length-1)];arrow(X(a),Y(a),Math.atan2(Y(b)-Y(a),X(b)-X(a)));
+// start dot
+const p=s[0],pulse=1+.12*Math.sin(Date.now()/150);c.fillStyle='#2fbf71';c.beginPath();c.arc(X(p),Y(p),S*.05*pulse,0,7);c.fill();c.fillStyle='#fff';c.font='bold '+S*.055+'px Arial';c.textAlign='center';c.textBaseline='middle';c.fillText(si+1,X(p),Y(p)+1);c.textAlign='start';c.textBaseline='alphabetic'}
+ink.forEach(q=>{c.fillStyle='rgba(80,80,80,.25)';c.beginPath();c.arc(q[0],q[1],S*.012,0,7);c.fill()})}
+function arrow(x,y,a){c.save();c.translate(x,y);c.rotate(a);c.fillStyle='#ff7a00';c.beginPath();c.moveTo(S*.04,0);c.lineTo(-S*.025,-S*.03);c.lineTo(-S*.025,S*.03);c.fill();c.restore()}
+(function loop(){if($('#tr').classList.contains('on')&&!busy)draw();requestAnimationFrame(loop)})();t0=Date.now();
+const tol=()=>S*.12;
+function near(x,y){const s=strokes[si];let best=-1;for(let i=prog;i<Math.min(s.length,prog+10);i++){if(Math.hypot(X(s[i])-x,Y(s[i])-y)<tol())best=i}return best}
+function pos(e){const r=cv.getBoundingClientRect();return[e.clientX-r.left,e.clientY-r.top]}
+cv.addEventListener('pointerdown',e=>{if(busy||si>=strokes.length)return;if(pid!==null)return; // ignore palm/2nd finger
+if(e.pointerType==='touch'&&e.width>60)return;pid=e.pointerId;cv.setPointerCapture(pid);const[x,y]=pos(e);const s=strokes[si];
+started=Math.hypot(X(s[0])-x,Y(s[0])-y)<tol()*1.1;ink=[[x,y]];prog=0;if(!started){pulseStart()}});
+cv.addEventListener('pointermove',e=>{if(e.pointerId!==pid||!started)return;for(const ev of (e.getCoalescedEvents?e.getCoalescedEvents():[e])){const[x,y]=pos(ev);ink.push([x,y]);const n=near(x,y);if(n>prog)prog=n}});
+function up(e){if(e.pointerId!==pid)return;pid=null;if(!started){ink=[];return}const s=strokes[si];
+if(prog>=s.length-3){boop();tone(880,.08,.15,'triangle',.15);si++;prog=0;ink=[];if(si>=strokes.length){draw();busy=true;confetti();say('Super! '+KEYS[li]+'! Well done, '+CHILD_NAME+'!');setTimeout(()=>{busy=false},2500)}}
+else{prog=0;ink=[];pulseStart()}}
+cv.addEventListener('pointerup',up);cv.addEventListener('pointercancel',up);
+let lastHint=0;function pulseStart(){if(Date.now()-lastHint<2500)return;lastHint=Date.now();say('Start at the green dot');}
+async function demo(){if(busy)return;busy=true;hush();const keep=si;si=0;prog=0;ink=[];
+for(let k=0;k<strokes.length;k++){si=k;const s=strokes[k];for(let i=0;i<s.length;i++){prog=i;draw();const p=s[i];c.font=S*.1+'px serif';c.fillText('☝️',X(p)-S*.03,Y(p)+S*.09);await new Promise(r=>setTimeout(r,28))}}
+await new Promise(r=>setTimeout(r,500));si=0;prog=0;busy=false;draw()}
+$('#watch').onclick=demo;$('#clr').onclick=()=>{boop();si=0;prog=0;ink=[];busy=false};
+$('#nextL').onclick=()=>{li=(li+1)%KEYS.length;boop();setupTrace()};$('#prevL').onclick=()=>{li=(li+KEYS.length-1)%KEYS.length;boop();setupTrace()};
+$('#sayL').onclick=()=>say(KEYS[li]);
+// ===== mic =====
+let rec,chunks=[],url=null;
+$('#recb').onclick=async()=>{const b=$('#recb');if(rec&&rec.state==='recording'){rec.stop();return}
+try{const st=await navigator.mediaDevices.getUserMedia({audio:true});chunks=[];rec=new MediaRecorder(st);rec.ondataavailable=e=>chunks.push(e.data);
+rec.onstop=()=>{st.getTracks().forEach(t=>t.stop());url=URL.createObjectURL(new Blob(chunks,{type:rec.mimeType}));b.textContent='🔴';b.classList.remove('wig');$('#playb').style.opacity=1;playBack()};
+rec.start();b.textContent='⏹️';b.classList.add('wig');setTimeout(()=>rec.state==='recording'&&rec.stop(),5000)}catch(e){b.classList.add('wig')}};
+function playBack(){if(!url)return;const a=new Audio(url);a.onended=()=>confetti();a.play()}
+$('#playb').onclick=playBack;
+if('serviceWorker' in navigator&&location.protocol.startsWith('http'))navigator.serviceWorker.register('sw.js').catch(()=>{});
+</script></body></html>
