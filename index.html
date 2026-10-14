@@ -33,10 +33,19 @@ h1{margin:6px 0 14px;font-size:44px;color:#ff5c8a;text-shadow:3px 3px 0 #fff}
 #conf{position:fixed;inset:0;pointer-events:none;z-index:9}
 .star{position:fixed;font-size:160px;left:50%;top:40%;transform:translate(-50%,-50%) scale(0);z-index:10;pointer-events:none}
 .star.go{animation:star 1.2s ease-out}@keyframes star{30%{transform:translate(-50%,-50%) scale(1.3)}70%{transform:translate(-50%,-50%) scale(1)}100%{transform:translate(-50%,-90%) scale(0);opacity:0}}
+#splash{justify-content:center;gap:6px}
+#splash .big{width:300px;height:230px}
+.hint{max-width:740px;margin:12px 24px 0;font-size:22px;line-height:1.35;text-align:center;color:#6b4b58;font-weight:700}
 </style></head><body>
 <canvas id="conf"></canvas><div class="star" id="star">🌟</div>
 
-<div class="screen on" id="home"><h1 id="hi"></h1><div class="home">
+<div class="screen on" id="splash">
+<h1>Tap to start 🔊</h1>
+<button class="big" id="startbtn" style="background:#ff7aa2">🔊<small>Start</small></button>
+<p class="hint">Turn the volume up. The iPad silent switch can mute Web Audio (the claps and beeps).</p>
+</div>
+
+<div class="screen" id="home"><h1 id="hi"></h1><div class="home">
 <button class="big" style="background:#ff7aa2" data-go="cards">🍎<small>Words</small></button>
 <button class="big" style="background:#7ac8ff;animation-delay:.3s" data-go="school">🏫<small>School</small></button>
 <button class="big" style="background:#ffb84d;animation-delay:.6s" data-go="game">👂<small>Find it</small></button>
@@ -49,7 +58,7 @@ h1{margin:6px 0 14px;font-size:44px;color:#ff5c8a;text-shadow:3px 3px 0 #fff}
 <div class="screen" id="game"><button class="back">🏠</button><button class="tbtn" id="again" style="margin-top:10px">🔊</button><div class="row" id="opts"></div></div>
 <div class="screen" id="tr"><button class="back">🏠</button>
 <div class="side"><button class="tbtn" id="prevL">⬅️</button><button class="tbtn" id="watch">👀</button><button class="tbtn" id="clr">🔄</button></div>
-<canvas id="cv"></canvas>
+<canvas id="cv" style="touch-action:none"></canvas>
 <div class="side"><button class="tbtn" id="nextL">➡️</button><button class="tbtn" id="sayL">🔊</button></div></div>
 <div class="screen" id="mic"><button class="back">🏠</button><h1>🎤</h1><div class="row"><button class="tbtn rec" id="recb">🔴</button><button class="tbtn rec" id="playb" style="opacity:.4">▶️</button></div></div>
 
@@ -83,42 +92,58 @@ let lastT=0;document.addEventListener('touchend',e=>{const n=Date.now();if(n-las
 document.addEventListener('touchmove',e=>{if(!e.target.closest('.grid'))e.preventDefault()},{passive:false});
 document.addEventListener('contextmenu',e=>e.preventDefault());
 // ===== audio =====
-let AC;function ac(){if(!AC)AC=new (window.AudioContext||window.webkitAudioContext)();if(AC.state==='suspended')AC.resume();return AC}
-function tone(f,t0,d,type='sine',v=.2){const c=ac(),o=c.createOscillator(),g=c.createGain();o.type=type;o.frequency.value=f;g.gain.setValueAtTime(v,c.currentTime+t0);g.gain.exponentialRampToValueAtTime(.001,c.currentTime+t0+d);o.connect(g).connect(c.destination);o.start(c.currentTime+t0);o.stop(c.currentTime+t0+d)}
+let AC;
+function ac(){try{const Ctor=window.AudioContext||window.webkitAudioContext;if(!Ctor)return null;if(!AC)AC=new Ctor();if(AC.state==='suspended'){const p=AC.resume();if(p&&p.catch)p.catch(()=>{})}return AC}catch(e){return null}}
+function unlockAudio(){const ctx=ac();if(!ctx)return;const rate=ctx.sampleRate||22050;const n=Math.max(1,rate*0.02|0);const buf=ctx.createBuffer(1,n,rate);const src=ctx.createBufferSource();src.buffer=buf;src.connect(ctx.destination);try{src.start(0)}catch(e){}}
+function tone(f,t0,d,type='sine',v=.2){const c=ac();if(!c)return;const o=c.createOscillator(),g=c.createGain();o.type=type;o.frequency.value=f;g.gain.setValueAtTime(v,c.currentTime+t0);g.gain.exponentialRampToValueAtTime(.001,c.currentTime+t0+d);o.connect(g).connect(c.destination);o.start(c.currentTime+t0);o.stop(c.currentTime+t0+d)}
 function boop(){tone(660,0,.12,'triangle',.15)}
 function yay(){[523,659,784,1047].forEach((f,i)=>tone(f,i*.1,.3,'triangle'));clap()}
-function clap(){const c=ac();for(let k=0;k<8;k++){const b=c.createBuffer(1,c.sampleRate*.08,c.sampleRate),d=b.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/d.length,3);const s=c.createBufferSource(),f=c.createBiquadFilter(),g=c.createGain();f.type='bandpass';f.frequency.value=1500;g.gain.value=.5;s.buffer=b;s.connect(f).connect(g).connect(c.destination);s.start(c.currentTime+.35+k*.13+Math.random()*.03)}}
+function clap(){const c=ac();if(!c)return;for(let k=0;k<8;k++){const b=c.createBuffer(1,c.sampleRate*.08,c.sampleRate),d=b.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/d.length,3);const s=c.createBufferSource(),f=c.createBiquadFilter(),g=c.createGain();f.type='bandpass';f.frequency.value=1500;g.gain.value=.5;s.buffer=b;s.connect(f).connect(g).connect(c.destination);s.start(c.currentTime+.35+k*.13+Math.random()*.03)}}
 // ===== speech =====
-const SS=window.speechSynthesis;let VO=[];function lv(){VO=SS?SS.getVoices():[]}if(SS){lv();SS.onvoiceschanged=lv}
-function voice(l){const p=l.split('-')[0];return VO.find(v=>v.lang.replace('_','-')===l)||VO.find(v=>v.lang.toLowerCase().startsWith(p))}
-function say(text,lang='en-IN',rate=.8){return new Promise(res=>{if(!SS){res();return}const v=voice(lang);if(!v&&lang!=='en-IN'&&VO.length){res(false);return}
-const u=new SpeechSynthesisUtterance(text);u.lang=lang;if(v)u.voice=v;u.rate=rate;u.pitch=1.15;let done=false;const f=()=>{if(!done){done=true;res(true)}};u.onend=f;u.onerror=f;setTimeout(f,6000);SS.speak(u)})}
-function hush(){if(SS)SS.cancel()}
+const SS=window.speechSynthesis;let VO=[];
+function lv(){try{VO=SS&&SS.getVoices?SS.getVoices()||[]:[]}catch(e){VO=[]}}
+if(SS){lv();SS.onvoiceschanged=lv;if(SS.addEventListener)SS.addEventListener('voiceschanged',lv);let vp=0;const vt=setInterval(()=>{lv();if((VO&&VO.length)||++vp>20)clearInterval(vt)},250)}
+function normLang(s){return (s||'').replace('_','-').toLowerCase()}
+function voice(l){const want=normLang(l);if(!want)return null;const p=want.split('-')[0];return VO.find(v=>normLang(v.lang)===want)||VO.find(v=>normLang(v.lang).startsWith(p))||null}
+function speakItems(items){if(!SS)return;lv();try{SS.cancel()}catch(e){}try{if(SS.paused&&SS.resume)SS.resume()}catch(e){}
+for(const it of items){const lang=it.lang||'en-US';const u=new SpeechSynthesisUtterance(String(it.text));const v=voice(lang);
+const use=(voiceObj,fallbackLang)=>{try{if(voiceObj)u.voice=voiceObj;u.lang=(voiceObj&&voiceObj.lang)||fallbackLang}catch(e){u.lang=fallbackLang}};
+if(v)use(v,lang);else{const en=voice('en-US')||voice('en-IN')||voice('en');if(en&&!normLang(lang).startsWith('en'))use(en,'en-US');else use(null,lang)}
+u.rate=it.rate==null?0.85:it.rate;u.pitch=1.15;try{SS.speak(u)}catch(e){}}}
+function say(text,lang='en-IN',rate=.8){speakItems([{text,lang,rate}]);return Promise.resolve(true)}
+function hush(){if(SS){try{SS.cancel()}catch(e){}}}
+let startedApp=false;
+function startApp(e){if(startedApp)return;startedApp=true;if(e&&e.cancelable){try{e.preventDefault()}catch(err){}}unlockAudio();speakItems([{text:'Hello!',lang:'en-US',rate:.9}]);show('home')}
+$('#startbtn').addEventListener('touchend',startApp,{passive:false});
+$('#startbtn').addEventListener('click',startApp);
+function act(fn){let locked=false;return function(e){if(locked)return;locked=true;setTimeout(()=>{locked=false},350);if(e&&e.cancelable){try{e.preventDefault()}catch(err){}}unlockAudio();fn(e)}}
 // ===== confetti =====
 const cf=$('#conf'),cx=cf.getContext('2d');let P=[];
 function confetti(){cf.width=innerWidth;cf.height=innerHeight;for(let i=0;i<140;i++)P.push({x:innerWidth/2,y:innerHeight/2,vx:(Math.random()-.5)*22,vy:-Math.random()*22-4,c:`hsl(${Math.random()*360},90%,60%)`,r:Math.random()*6+5,l:120});const st=$('#star');st.classList.remove('go');void st.offsetWidth;st.classList.add('go');yay();if(P.length<=140)requestAnimationFrame(cfl)}
 function cfl(){cx.clearRect(0,0,cf.width,cf.height);P.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.vy+=.6;p.vx*=.99;p.l--;cx.fillStyle=p.c;cx.fillRect(p.x,p.y,p.r,p.r*1.6)});P=P.filter(p=>p.l>0&&p.y<cf.height+20);if(P.length)requestAnimationFrame(cfl);else cx.clearRect(0,0,cf.width,cf.height)}
 // ===== nav =====
-function go(id){hush();boop();document.querySelectorAll('.screen').forEach(s=>s.classList.toggle('on',s.id===id));if(id==='game')newRound();if(id==='tr')setupTrace()}
-document.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>go(b.dataset.go));
-document.querySelectorAll('.back').forEach(b=>b.onclick=()=>go('home'));
+function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.toggle('on',s.id===id))}
+let sawDemo=false;
+function go(id){unlockAudio();show(id);if(id==='game'){newRound();ask()}else if(id==='tr'){setupTrace();say(KEYS[li]);if(li===0&&!sawDemo){sawDemo=true;demo()}}else boop()}
+function bind(el,fn){const run=act(fn);el.addEventListener('touchend',run,{passive:false});el.addEventListener('click',run)}
+document.querySelectorAll('[data-go]').forEach(b=>bind(b,()=>go(b.dataset.go)));
+document.querySelectorAll('.back').forEach(b=>bind(b,()=>go('home')));
 // ===== cards =====
 const g=$('#cardgrid');WORDS.forEach(w=>{const b=document.createElement('button');b.className='card';b.innerHTML=`<div class="e">${w[0]}</div><div class="en">${w[1]}</div><div class="tt">${w[2]}<br>${w[3]}</div>`;
-b.onclick=async()=>{hush();b.classList.remove('play');void b.offsetWidth;b.classList.add('play');await say(w[2],'ta-IN');await say(w[3],'te-IN');await say(w[1],'en-IN',.75)};g.appendChild(b)});
+bind(b,()=>{b.classList.remove('play');void b.offsetWidth;b.classList.add('play');speakItems([{text:w[2],lang:'ta-IN'},{text:w[3],lang:'te-IN'},{text:w[1],lang:'en-IN',rate:.75}])});g.appendChild(b)});
 // ===== school =====
 const sg=$('#schoolgrid');PHR.forEach(p=>{const d=document.createElement('div');d.style.cssText='display:flex;flex-direction:column;align-items:center;gap:6px';
-const b=document.createElement('button');b.className='card ph';b.innerHTML=`<div class="e">${p[0]}</div><div class="en">${p[1]}</div>`;b.onclick=()=>{hush();b.classList.remove('play');void b.offsetWidth;b.classList.add('play');say(p[1],'en-IN',.6)};
+const b=document.createElement('button');b.className='card ph';b.innerHTML=`<div class="e">${p[0]}</div><div class="en">${p[1]}</div>`;bind(b,()=>{b.classList.remove('play');void b.offsetWidth;b.classList.add('play');say(p[1],'en-IN',.6)});
 const r=document.createElement('div');r.style.cssText='display:flex;gap:12px';
-const t=document.createElement('button');t.className='tbtn';t.style.cssText='width:140px;height:120px;border-radius:30px;font-size:24px';t.innerHTML='🔊<br>தமிழ்';t.onclick=()=>{hush();say(p[2],'ta-IN')};
-const te=t.cloneNode();te.innerHTML='🔊<br>తెలుగు';te.onclick=()=>{hush();say(p[3],'te-IN')};r.append(t,te);d.append(b,r);sg.appendChild(d)});
+const t=document.createElement('button');t.className='tbtn';t.style.cssText='width:140px;height:120px;border-radius:30px;font-size:24px';t.innerHTML='🔊<br>தமிழ்';bind(t,()=>say(p[2],'ta-IN'));
+const te=t.cloneNode();te.innerHTML='🔊<br>తెలుగు';bind(te,()=>say(p[3],'te-IN'));r.append(t,te);d.append(b,r);sg.appendChild(d)});
 // ===== listen & tap =====
 let target;
 function newRound(){const pool=WORDS.filter(w=>!['Mother','Father','Grandma','Teacher','Baby'].includes(w[1]));const sh=pool.sort(()=>Math.random()-.5).slice(0,3);target=sh[Math.floor(Math.random()*3)];
 const o=$('#opts');o.innerHTML='';sh.forEach(w=>{const b=document.createElement('button');b.className='card';b.innerHTML=`<div class="e">${w[0]}</div>`;
-b.onclick=()=>{if(w===target){confetti();say('Yes! '+w[1]+'! Well done, '+CHILD_NAME+'!');setTimeout(newRound,2600)}else{b.classList.remove('wig');void b.offsetWidth;b.classList.add('wig');say('Try again. Where is the '+target[1].toLowerCase()+'?')}};o.appendChild(b)});
-setTimeout(ask,400)}
-function ask(){hush();say('Where is the '+target[1].toLowerCase()+'?')}
-$('#again').onclick=ask;
+bind(b,()=>{if(w===target){confetti();say('Yes! '+w[1]+'! Well done, '+CHILD_NAME+'!');setTimeout(()=>{newRound();ask()},2600)}else{b.classList.remove('wig');void b.offsetWidth;b.classList.add('wig');say('Try again. Where is the '+target[1].toLowerCase()+'?')}});o.appendChild(b)})}
+function ask(){if(!target)return;say('Where is the '+target[1].toLowerCase()+'?')}
+bind($('#again'),ask);
 // ===== tracing =====
 // letters on a 0..1 box; each stroke = list of points in drawing order
 function arc(cx,cy,rx,ry,a0,a1,n=14){const p=[];for(let i=0;i<=n;i++){const a=(a0+(a1-a0)*i/n)*Math.PI/180;p.push([cx+rx*Math.cos(a),cy+ry*Math.sin(a)])}return p}
@@ -150,43 +175,52 @@ W:[[[.12,T],[.3,B]],[[.3,B],[M,.35]],[[M,.35],[.7,B]],[[.7,B],[.88,T]]],
 X:[[[.22,T],[.78,B]],[[.78,T],[.22,B]]],
 Y:[[[.22,T],[M,.5]],[[.78,T],[M,.5]],[[M,.5],[M,B]]],
 Z:[[[.22,T],[.78,T]],[[.78,T],[.22,B]],[[.22,B],[.78,B]]]};
-const KEYS=Object.keys(LET);let li=0,strokes,si,prog,ink=[],busy=false,pid=null,started=false,S=0,ox=0,oy=0,t0=0;
+const KEYS=Object.keys(LET);let li=0,strokes,si,prog,ink=[],busy=false,pid=null,started=false,S=0,t0=0,inputMode=null;
 const cv=$('#cv'),c=cv.getContext('2d');const COLS=['#ff5c8a','#3aa0ff','#ffa020','#2fbf71','#a06bff'];
+cv.style.touchAction='none';
 function resample(pts,step=.012){const o=[pts[0]];for(let i=1;i<pts.length;i++){const[a,b]=[pts[i-1],pts[i]];const d=Math.hypot(b[0]-a[0],b[1]-a[1]),n=Math.max(1,Math.ceil(d/step));for(let k=1;k<=n;k++)o.push([a[0]+(b[0]-a[0])*k/n,a[1]+(b[1]-a[1])*k/n])}return o}
-function setupTrace(){const h=Math.min(innerHeight-40,760);cv.width=cv.height=h*devicePixelRatio;cv.style.width=cv.style.height=h+'px';S=h;strokes=LET[KEYS[li]].map(s=>resample(s));si=0;prog=0;ink=[];draw();setTimeout(()=>{say(KEYS[li]);if(li===0)demo()},300)}
+function setBusy(v){busy=v;cv.dataset.busy=v?'1':'0'}
+function setupTrace(){const h=Math.min(innerHeight-40,760);const dpr=window.devicePixelRatio||1;cv.width=cv.height=Math.round(h*dpr);cv.style.width=cv.style.height=h+'px';cv.style.touchAction='none';S=h;strokes=LET[KEYS[li]].map(s=>resample(s));si=0;prog=0;ink=[];started=false;pid=null;inputMode=null;setBusy(false);cv.dataset.phase='ready';cv.dataset.letter=KEYS[li];cv.dataset.letterDone='';draw()}
 const X=p=>(p[0]*S),Y=p=>(p[1]*S);
+function posFrom(clientX,clientY){const r=cv.getBoundingClientRect();const dpr=window.devicePixelRatio||1;const sx=(cv.width/Math.max(r.width,1))/dpr;const sy=(cv.height/Math.max(r.height,1))/dpr;return[(clientX-r.left)*sx,(clientY-r.top)*sy]}
+function clientFromCanvas(x,y){const r=cv.getBoundingClientRect();const dpr=window.devicePixelRatio||1;const sx=(cv.width/Math.max(r.width,1))/dpr;const sy=(cv.height/Math.max(r.height,1))/dpr;return[r.left+x/sx,r.top+y/sy]}
+window.__tracePath=function(){return strokes.map(s=>s.map(p=>clientFromCanvas(X(p),Y(p))))};
 function path(pts,upto){c.beginPath();c.moveTo(X(pts[0]),Y(pts[0]));for(let i=1;i<=Math.min(upto,pts.length-1);i++)c.lineTo(X(pts[i]),Y(pts[i]));c.stroke()}
 function draw(){c.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);c.clearRect(0,0,S,S);c.lineCap=c.lineJoin='round';
 // sun at top = "top" cue, ground at bottom
 c.font=S*.07+'px serif';c.fillText('☀️',S*.02,S*.08);c.fillStyle='#c8f0b0';c.fillRect(0,S*.93,S,S*.07);
 strokes.forEach((s,i)=>{c.strokeStyle='#eee';c.lineWidth=S*.11;path(s,1e9);c.setLineDash([2,S*.035]);c.strokeStyle=i<si?'transparent':'#bbb';c.lineWidth=S*.018;path(s,1e9);c.setLineDash([])});
 strokes.forEach((s,i)=>{if(i<si){c.strokeStyle=COLS[i%5];c.lineWidth=S*.075;path(s,1e9)}});
-if(si<strokes.length){const s=strokes[si];c.strokeStyle=COLS[si%5];c.lineWidth=S*.075;if(prog>0)path(s,prog);
+if(si<strokes.length){const s=strokes[si];c.strokeStyle=COLS[si%5];c.lineWidth=Math.max(14,S*.08);if(prog>0)path(s,prog);
 // arrow along current stroke (animated)
 const k=Math.floor(((Date.now()-t0)/40)%s.length);const a=s[Math.min(k,s.length-2)],b=s[Math.min(k+1,s.length-1)];arrow(X(a),Y(a),Math.atan2(Y(b)-Y(a),X(b)-X(a)));
 // start dot
 const p=s[0],pulse=1+.12*Math.sin(Date.now()/150);c.fillStyle='#2fbf71';c.beginPath();c.arc(X(p),Y(p),S*.05*pulse,0,7);c.fill();c.fillStyle='#fff';c.font='bold '+S*.055+'px Arial';c.textAlign='center';c.textBaseline='middle';c.fillText(si+1,X(p),Y(p)+1);c.textAlign='start';c.textBaseline='alphabetic'}
-ink.forEach(q=>{c.fillStyle='rgba(80,80,80,.25)';c.beginPath();c.arc(q[0],q[1],S*.012,0,7);c.fill()})}
+if(ink.length>1){c.strokeStyle='#222';c.lineWidth=Math.max(10,S*.05);c.beginPath();c.moveTo(ink[0][0],ink[0][1]);for(let i=1;i<ink.length;i++)c.lineTo(ink[i][0],ink[i][1]);c.stroke()}}
 function arrow(x,y,a){c.save();c.translate(x,y);c.rotate(a);c.fillStyle='#ff7a00';c.beginPath();c.moveTo(S*.04,0);c.lineTo(-S*.025,-S*.03);c.lineTo(-S*.025,S*.03);c.fill();c.restore()}
 (function loop(){if($('#tr').classList.contains('on')&&!busy)draw();requestAnimationFrame(loop)})();t0=Date.now();
-const tol=()=>S*.12;
-function near(x,y){const s=strokes[si];let best=-1;for(let i=prog;i<Math.min(s.length,prog+10);i++){if(Math.hypot(X(s[i])-x,Y(s[i])-y)<tol())best=i}return best}
-function pos(e){const r=cv.getBoundingClientRect();return[e.clientX-r.left,e.clientY-r.top]}
-cv.addEventListener('pointerdown',e=>{if(busy||si>=strokes.length)return;if(pid!==null)return; // ignore palm/2nd finger
-if(e.pointerType==='touch'&&e.width>60)return;pid=e.pointerId;cv.setPointerCapture(pid);const[x,y]=pos(e);const s=strokes[si];
-started=Math.hypot(X(s[0])-x,Y(s[0])-y)<tol()*1.1;ink=[[x,y]];prog=0;if(!started){pulseStart()}});
-cv.addEventListener('pointermove',e=>{if(e.pointerId!==pid||!started)return;for(const ev of (e.getCoalescedEvents?e.getCoalescedEvents():[e])){const[x,y]=pos(ev);ink.push([x,y]);const n=near(x,y);if(n>prog)prog=n}});
-function up(e){if(e.pointerId!==pid)return;pid=null;if(!started){ink=[];return}const s=strokes[si];
-if(prog>=s.length-3){boop();tone(880,.08,.15,'triangle',.15);si++;prog=0;ink=[];if(si>=strokes.length){draw();busy=true;confetti();say('Super! '+KEYS[li]+'! Well done, '+CHILD_NAME+'!');setTimeout(()=>{busy=false},2500)}}
-else{prog=0;ink=[];pulseStart()}}
-cv.addEventListener('pointerup',up);cv.addEventListener('pointercancel',up);
-let lastHint=0;function pulseStart(){if(Date.now()-lastHint<2500)return;lastHint=Date.now();say('Start at the green dot');}
-async function demo(){if(busy)return;busy=true;hush();const keep=si;si=0;prog=0;ink=[];
-for(let k=0;k<strokes.length;k++){si=k;const s=strokes[k];for(let i=0;i<s.length;i++){prog=i;draw();const p=s[i];c.font=S*.1+'px serif';c.fillText('☝️',X(p)-S*.03,Y(p)+S*.09);await new Promise(r=>setTimeout(r,28))}}
-await new Promise(r=>setTimeout(r,500));si=0;prog=0;busy=false;draw()}
-$('#watch').onclick=demo;$('#clr').onclick=()=>{boop();si=0;prog=0;ink=[];busy=false};
-$('#nextL').onclick=()=>{li=(li+1)%KEYS.length;boop();setupTrace()};$('#prevL').onclick=()=>{li=(li+KEYS.length-1)%KEYS.length;boop();setupTrace()};
-$('#sayL').onclick=()=>say(KEYS[li]);
+const tol=()=>S*.18;
+function near(x,y){const s=strokes[si];let best=-1;for(let i=prog;i<Math.min(s.length,prog+24);i++){if(Math.hypot(X(s[i])-x,Y(s[i])-y)<tol())best=i}return best}
+function beginAt(x,y){if(busy||!strokes||si>=strokes.length)return false;const s=strokes[si];started=Math.hypot(X(s[0])-x,Y(s[0])-y)<tol();ink=[[x,y]];prog=0;if(started){const n=near(x,y);if(n>prog)prog=n}else pulseStart();draw();window.__traceStarted=started;return true}
+function extend(x,y){if(!started)return;ink.push([x,y]);const n=near(x,y);if(n>prog)prog=n;draw()}
+function finishStroke(){if(!started){ink=[];return}const s=strokes[si];if(prog>=s.length-3){boop();tone(880,.08,.15,'triangle',.15);si++;prog=0;ink=[];started=false;draw();if(si>=strokes.length){cv.dataset.letterDone=KEYS[li];setBusy(true);say('Super! '+KEYS[li]+'! Well done, '+CHILD_NAME+'!');try{confetti()}catch(e){}setTimeout(()=>setBusy(false),2500)}}else{prog=0;ink=[];started=false;pulseStart();draw()}}
+function pos(e){return posFrom(e.clientX,e.clientY)}
+cv.addEventListener('pointerdown',e=>{if(inputMode==='touch')return;if(busy||!strokes||si>=strokes.length)return;if(pid!==null)return;inputMode='pointer';pid=e.pointerId;try{cv.setPointerCapture(pid)}catch(err){}const[x,y]=pos(e);beginAt(x,y)});
+cv.addEventListener('pointermove',e=>{if(inputMode!=='pointer'||e.pointerId!==pid||!started)return;const evs=e.getCoalescedEvents?e.getCoalescedEvents():[e];for(const ev of evs){const[x,y]=pos(ev);extend(x,y)}});
+function pointerUp(e){if(inputMode!=='pointer'||e.pointerId!==pid)return;pid=null;inputMode=null;finishStroke()}
+cv.addEventListener('pointerup',pointerUp);cv.addEventListener('pointercancel',pointerUp);
+function touchXY(e){const t=(e.touches&&e.touches[0])||(e.changedTouches&&e.changedTouches[0]);return posFrom(t.clientX,t.clientY)}
+cv.addEventListener('touchstart',e=>{e.preventDefault();if(inputMode==='pointer')return;if(busy||!strokes||si>=strokes.length)return;inputMode='touch';const[x,y]=touchXY(e);beginAt(x,y)},{passive:false});
+cv.addEventListener('touchmove',e=>{e.preventDefault();if(inputMode!=='touch'||!started)return;const[x,y]=touchXY(e);extend(x,y)},{passive:false});
+function touchEnd(e){e.preventDefault();if(inputMode!=='touch')return;inputMode=null;finishStroke()}
+cv.addEventListener('touchend',touchEnd,{passive:false});
+cv.addEventListener('touchcancel',touchEnd,{passive:false});
+let lastHint=0;function pulseStart(){if(Date.now()-lastHint<2500)return;lastHint=Date.now();say('Start at the green dot')}
+async function demo(){if(busy)return;setBusy(true);cv.dataset.phase='demo';si=0;prog=0;ink=[];started=false;try{for(let k=0;k<strokes.length;k++){si=k;const s=strokes[k];for(let i=0;i<s.length;i++){prog=i;draw();const p=s[i];c.font=S*.1+'px serif';c.fillText('☝️',X(p)-S*.03,Y(p)+S*.09);await new Promise(r=>setTimeout(r,28))}}await new Promise(r=>setTimeout(r,500))}finally{si=0;prog=0;ink=[];started=false;pid=null;inputMode=null;setBusy(false);cv.dataset.phase='ready';draw()}}
+bind($('#watch'),()=>demo());bind($('#clr'),()=>{boop();si=0;prog=0;ink=[];started=false;inputMode=null;pid=null;setBusy(false);cv.dataset.phase='ready';cv.dataset.letterDone='';draw()});
+bind($('#nextL'),()=>{li=(li+1)%KEYS.length;boop();setupTrace();say(KEYS[li])});
+bind($('#prevL'),()=>{li=(li+KEYS.length-1)%KEYS.length;boop();setupTrace();say(KEYS[li])});
+bind($('#sayL'),()=>say(KEYS[li]));
 // ===== mic =====
 let rec,chunks=[],url=null;
 $('#recb').onclick=async()=>{const b=$('#recb');if(rec&&rec.state==='recording'){rec.stop();return}
