@@ -1,9 +1,9 @@
 <!DOCTYPE html><html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="Learn">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="Aradia">
 <link rel="manifest" href="manifest.webmanifest"><link rel="icon" href="icon.svg"><link rel="apple-touch-icon" href="icon.svg">
-<title>Little Learner</title>
+<title>Aradia</title>
 <style>
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
 html,body{margin:0;height:100%;overflow:hidden;overscroll-behavior:none;touch-action:none;font-family:"Arial Rounded MT Bold","Trebuchet MS",Arial,sans-serif;background:linear-gradient(160deg,#fff4d6,#ffe0ec 60%,#d9f2ff)}
@@ -173,8 +173,8 @@ body[data-screen="home"] .floater,body[data-screen="splash"] .floater{display:no
 <div class="screen" id="stickers"><button class="back">🏠</button><h1 id="stickn">⭐</h1><div class="stickgrid" id="stickgrid"></div></div>
 
 <script>
-const CHILD_NAME="Aaradya";
-const CHILD_SAY="Aa-raa-dhya";
+const CHILD_NAME="Aradia";
+const CHILD_SAY="Aradia";
 const WORDS=[
 ["👩","Mother","அம்மா","అమ్మ"],["👨","Father","அப்பா","నాన్న"],["👶","Baby","பாப்பா","పాప"],["👵","Grandma","பாட்டி","అమ్మమ్మ"],["👩‍🏫","Teacher","டீச்சர்","టీచర్"],
 ["💧","Water","தண்ணீர்","నీళ్ళు"],["🥛","Milk","பால்","పాలు"],["🍚","Rice","சாதம்","అన్నం"],["🍌","Banana","வாழைப்பழம்","అరటిపండు"],["🥭","Mango","மாம்பழம்","మామిడిపండు"],
@@ -201,13 +201,24 @@ const SS=window.speechSynthesis;let VO=[];
 function lv(){try{VO=SS&&SS.getVoices?SS.getVoices()||[]:[]}catch(e){VO=[]}}
 if(SS){lv();SS.onvoiceschanged=lv;if(SS.addEventListener)SS.addEventListener('voiceschanged',lv);let vp=0;const vt=setInterval(()=>{lv();if((VO&&VO.length)||++vp>20)clearInterval(vt)},250)}
 function normLang(s){return (s||'').replace('_','-').toLowerCase()}
+function voiceBlob(v){return ((v.name||'')+' '+(v.voiceURI||'')+' '+(v.lang||'')).toLowerCase()}
+function isFemale(v){const g=String(v.gender||'').toLowerCase();if(g==='female')return true;if(g==='male')return false;const n=voiceBlob(v);if(/\bfemale\b/.test(n))return true;if(/\bmale\b/.test(n))return false;return /\b(veena|lekha|heera|neerja|swara)\b/.test(n)}
+function isEnhanced(v){return /enhanced|premium|natural|neural/.test(voiceBlob(v))}
 function voice(l){const want=normLang(l);if(!want)return null;const p=want.split('-')[0];return VO.find(v=>normLang(v.lang)===want)||VO.find(v=>normLang(v.lang).startsWith(p))||null}
+function pickVoice(){const list=VO||[];
+const indi=list.filter(v=>normLang(v.lang).startsWith('en-in')&&isFemale(v));
+const warmIN=indi.find(isEnhanced)||indi[0];if(warmIN)return warmIN;
+const premium=list.filter(v=>/\b(samantha|karen)\b/.test(voiceBlob(v))&&isEnhanced(v));
+const sam=premium.find(v=>/\bsamantha\b/.test(voiceBlob(v)));if(sam)return sam;
+const kar=premium.find(v=>/\bkaren\b/.test(voiceBlob(v)));if(kar)return kar;
+return list.find(v=>normLang(v.lang).startsWith('en'))||null}
 function speakItems(items){if(!SS)return;lv();try{SS.cancel()}catch(e){}try{if(SS.paused&&SS.resume)SS.resume()}catch(e){}
-for(const it of items){const lang=it.lang||'en-US';const u=new SpeechSynthesisUtterance(spoken(it.text));const v=voice(lang);
-const use=(voiceObj,fallbackLang)=>{try{if(voiceObj)u.voice=voiceObj;u.lang=(voiceObj&&voiceObj.lang)||fallbackLang}catch(e){u.lang=fallbackLang}};
-if(v)use(v,lang);else{const en=voice('en-US')||voice('en-IN')||voice('en');if(en&&!normLang(lang).startsWith('en'))use(en,'en-US');else use(null,lang)}
-u.rate=it.rate==null?0.85:it.rate;u.pitch=1.15;if(it.onstart)u.onstart=it.onstart;if(it.onend)u.onend=it.onend;try{SS.speak(u)}catch(e){}}}
-function say(text,lang='en-IN',rate=.8){speakItems([{text,lang,rate}]);return Promise.resolve(true)}
+const warm=pickVoice();
+for(const it of items){const lang=it.lang||'en-IN';const u=new SpeechSynthesisUtterance(spoken(it.text));
+const english=normLang(lang).startsWith('en');const chosen=english?warm:(voice(lang)||warm);
+try{if(chosen){u.voice=chosen;u.lang=chosen.lang||lang}else u.lang=english?'en-IN':lang}catch(e){u.lang=english?'en-IN':lang}
+u.rate=0.9;u.pitch=1.05;if(it.onstart)u.onstart=it.onstart;if(it.onend)u.onend=it.onend;try{SS.speak(u)}catch(e){}}}
+function say(text,lang='en-IN'){speakItems([{text,lang}]);return Promise.resolve(true)}
 function hush(){if(SS){try{SS.cancel()}catch(e){}}}
 let stars=0,stick=[];
 try{stars=+localStorage.getItem('ll-stars')||0;stick=JSON.parse(localStorage.getItem('ll-stick')||'[]')}catch(e){stars=0;stick=[]}
